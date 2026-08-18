@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), '..', 'templates'))
 
-DATABASE = "warehouse.db"
+# Use /tmp for database on Vercel
+DATABASE = "/tmp/warehouse.db"
 
 
 def get_db():
@@ -61,43 +63,34 @@ def init_db():
     conn.close()
 
 
-# -----------------------------
-# HOME
-# -----------------------------
+# Initialize database on startup
+try:
+    init_db()
+except:
+    pass
 
+
+# HOME
 @app.route("/")
 def home():
-
     return render_template("index.html")
 
 
-# -----------------------------
 # GET PRODUCTS
-# -----------------------------
-
 @app.route("/api/products")
 def get_products():
-
     conn = get_db()
-
     products = conn.execute(
         "SELECT * FROM products ORDER BY id DESC"
     ).fetchall()
-
     conn.close()
-
     return jsonify([dict(p) for p in products])
 
 
-# -----------------------------
 # ADD PRODUCT
-# -----------------------------
-
 @app.route("/api/products", methods=["POST"])
 def add_product():
-
     data = request.json
-
     name = data.get("name")
     sku = data.get("sku")
     quantity = int(data.get("quantity", 0))
@@ -110,108 +103,72 @@ def add_product():
         }), 400
 
     try:
-
         conn = get_db()
-
         conn.execute("""
             INSERT INTO products
             (name, sku, quantity, minimum_stock)
             VALUES (?, ?, ?, ?)
-        """, (
-            name,
-            sku,
-            quantity,
-            minimum_stock
-        ))
-
+        """, (name, sku, quantity, minimum_stock))
         conn.commit()
         conn.close()
-
         return jsonify({
             "success": True,
             "message": "Product added successfully"
         })
-
     except sqlite3.IntegrityError:
-
         return jsonify({
             "success": False,
             "message": "SKU already exists"
         }), 400
 
 
-# -----------------------------
 # DELETE PRODUCT
-# -----------------------------
-
 @app.route("/api/products/<int:product_id>", methods=["DELETE"])
 def delete_product(product_id):
-
     conn = get_db()
-
     conn.execute(
         "DELETE FROM products WHERE id=?",
         (product_id,)
     )
-
     conn.commit()
     conn.close()
-
-    return jsonify({
-        "success": True
-    })
+    return jsonify({"success": True})
 
 
-# -----------------------------
 # GET ORDERS
-# -----------------------------
-
 @app.route("/api/orders")
 def get_orders():
-
     conn = get_db()
-
     orders = conn.execute(
         "SELECT * FROM orders ORDER BY id DESC"
     ).fetchall()
-
     conn.close()
-
     return jsonify([dict(o) for o in orders])
 
 
-# -----------------------------
 # CREATE ORDER
-# -----------------------------
-
 @app.route("/api/orders", methods=["POST"])
 def create_order():
-
     data = request.json
-
     customer = data.get("customer")
     product = data.get("product")
     quantity = int(data.get("quantity", 0))
     priority = data.get("priority")
 
     if not customer or not product or quantity <= 0:
-
         return jsonify({
             "success": False,
             "message": "Invalid order details"
         }), 400
 
     conn = get_db()
-
     product_data = conn.execute("""
         SELECT * FROM products
         WHERE name=?
     """, (product,)).fetchone()
 
     if not product_data:
-
         conn.close()
-
         return jsonify({
             "success": False,
             "message": "Product not found"
@@ -221,112 +178,70 @@ def create_order():
         INSERT INTO orders
         (customer, product, quantity, priority, status)
         VALUES (?, ?, ?, ?, ?)
-    """, (
-        customer,
-        product,
-        quantity,
-        priority,
-        "Pending"
-    ))
+    """, (customer, product, quantity, priority, "Pending"))
 
     conn.commit()
     conn.close()
-
     return jsonify({
         "success": True,
         "message": "Order created successfully"
     })
 
 
-# -----------------------------
 # UPDATE ORDER STATUS
-# -----------------------------
-
-@app.route(
-    "/api/orders/<int:order_id>/status",
-    methods=["PUT"]
-)
+@app.route("/api/orders/<int:order_id>/status", methods=["PUT"])
 def update_order_status(order_id):
-
     data = request.json
-
     status = data.get("status")
-
     conn = get_db()
-
     conn.execute("""
         UPDATE orders
         SET status=?
         WHERE id=?
     """, (status, order_id))
-
     conn.commit()
     conn.close()
-
-    return jsonify({
-        "success": True
-    })
+    return jsonify({"success": True})
 
 
-# -----------------------------
 # SMART ALLOCATION
-# -----------------------------
-
 @app.route("/api/allocation", methods=["POST"])
 def allocation():
-
     data = request.json
-
     product_name = data.get("product")
     required = int(data.get("quantity", 0))
     priority = data.get("priority")
 
     conn = get_db()
-
     product = conn.execute("""
         SELECT * FROM products
         WHERE name=?
     """, (product_name,)).fetchone()
-
     conn.close()
 
     if not product:
-
         return jsonify({
             "success": False,
             "message": "Product not found"
         }), 404
 
     available = product["quantity"]
-
-    allocated = min(
-        required,
-        available
-    )
-
-    shortage = max(
-        required - available,
-        0
-    )
+    allocated = min(required, available)
+    shortage = max(required - available, 0)
 
     if priority == "Critical":
-
         decision = (
             f"Allocate {allocated} units immediately. "
             f"Shortage: {shortage} units. "
             "Create urgent replenishment request."
         )
-
     elif priority == "High":
-
         decision = (
             f"Allocate available stock first. "
             f"Shortage: {shortage} units. "
             "Prioritize incoming stock."
         )
-
     else:
-
         decision = (
             "Hold allocation if stock is insufficient. "
             "Critical orders should be fulfilled first."
@@ -342,61 +257,40 @@ def allocation():
     })
 
 
-# -----------------------------
 # DASHBOARD
-# -----------------------------
-
 @app.route("/api/dashboard")
 def dashboard():
-
     conn = get_db()
-
     total_products = conn.execute(
         "SELECT COUNT(*) FROM products"
     ).fetchone()[0]
-
     total_stock = conn.execute(
         "SELECT COALESCE(SUM(quantity),0) FROM products"
     ).fetchone()[0]
-
     total_orders = conn.execute(
         "SELECT COUNT(*) FROM orders"
     ).fetchone()[0]
-
     low_stock = conn.execute("""
         SELECT COUNT(*)
         FROM products
         WHERE quantity > 0
         AND quantity <= minimum_stock
     """).fetchone()[0]
-
     out_stock = conn.execute("""
         SELECT COUNT(*)
         FROM products
         WHERE quantity = 0
     """).fetchone()[0]
-
     conn.close()
 
     return jsonify({
-
         "total_products": total_products,
         "total_stock": total_stock,
         "total_orders": total_orders,
         "low_stock": low_stock,
         "out_stock": out_stock
-
     })
 
 
-# Initialize database on app startup (for Vercel deployment)
-init_db()
-
-
 if __name__ == "__main__":
-
-    app.run(
-        debug=True,
-        host="0.0.0.0",
-        port=5000
-    )
+    app.run(debug=True, host="0.0.0.0", port=5000)
