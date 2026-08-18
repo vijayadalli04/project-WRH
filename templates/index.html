@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SmartStock AI - Warehouse Management</title>
+
+<style>
+
+/* =========================
+   BASIC
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#f4f7fb;
+    color:#172033;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none !important;
+}
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+    position:fixed;
+    width:240px;
+    height:100vh;
+    background:#101827;
+    color:white;
+    padding:20px 14px;
+    left:0;
+    top:0;
+    overflow-y:auto;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    margin-bottom:25px;
+}
+
+.logo-box{
+    width:42px;
+    height:42px;
+    background:#22c55e;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.logo h2{
+    font-size:17px;
+}
+
+.logo small{
+    color:#9ca3af;
+}
+
+.menu-title{
+    color:#64748b;
+    font-size:10px;
+    padding:10px;
+}
+
+.menu button{
+    width:100%;
+    text-align:left;
+    border:none;
+    background:transparent;
+    color:#9ca3af;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:4px;
+    font-size:13px;
+}
+
+.menu button:hover,
+.menu button.active{
+    background:#1f2937;
+    color:#22c55e;
+}
+
+.admin{
+    position:absolute;
+    bottom:20px;
+    left:15px;
+    right:15px;
+    border-top:1px solid #293241;
+    padding-top:15px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.avatar{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    background:#334155;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:11px;
+}
+
+.admin strong{
+    font-size:11px;
+}
+
+.admin small{
+    color:#94a3b8;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+    margin-left:240px;
+    padding:25px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+}
+
+.header h1{
+    font-size:25px;
+}
+
+.header p{
+    color:#7b8495;
+    font-size:12px;
+    margin-top:5px;
+}
+
+.header-right{
+    display:flex;
+    gap:10px;
+}
+
+.search{
+    width:230px;
+    padding:10px;
+    border:1px solid #dce2ea;
+    border-radius:8px;
+    outline:none;
+}
+
+.notification{
+    border:none;
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    padding:10px 14px;
+}
+
+
+/* =========================
+   PAGE
+========================= */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+
+/* =========================
+   AI BANNER
+========================= */
+
+.ai-banner{
+    background:linear-gradient(110deg,#172554,#1d4ed8);
+    color:white;
+    padding:22px;
+    border-radius:14px;
+    margin-bottom:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.ai-left{
+    display:flex;
+    gap:15px;
+    align-items:center;
+}
+
+.ai-icon{
+    width:48px;
+    height:48px;
+    background:#2563eb;
+    border-radius:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:23px;
+}
+
+.ai-banner small{
+    color:#93c5fd;
+    font-weight:bold;
+}
+
+.ai-banner h2{
+    font-size:17px;
+    margin:5px 0;
+}
+
+.ai-banner p{
+    font-size:11px;
+    color:#cbd5e1;
+}
+
+.ai-btn{
+    background:transparent;
+    border:1px solid #60a5fa;
+    color:white;
+    padding:10px 15px;
+    border-radius:8px;
+}
+
+
+/* =========================
+   STATS
+========================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:15px;
+    margin-bottom:22px;
+}
+
+.stat{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:17px;
+}
+
+.stat-title{
+    color:#6b7280;
+    font-size:11px;
+}
+
+.stat h2{
+    margin:10px 0 5px;
+    font-size:25px;
+}
+
+.green{
+    color:#16a34a;
+}
+
+.red{
+    color:#dc2626;
+}
+
+.orange{
+    color:#ea580c;
+}
+
+.blue{
+    color:#2563eb;
+}
+
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.card-header h2{
+    font-size:16px;
+}
+
+.card-header p{
+    color:#8a93a3;
+    font-size:10px;
+    margin-top:4px;
+}
+
+
+/* =========================
+   TABLE
+========================= */
+
+.table-box{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#f8fafc;
+    color:#64748b;
+    font-size:10px;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #edf0f4;
+    font-size:11px;
+}
+
+.status{
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:9px;
+}
+
+.available{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.low-stock{
+    background:#ffedd5;
+    color:#c2410c;
+}
+
+.out-stock{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.action-btn{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:7px 10px;
+    border-radius:6px;
+    font-size:9px;
+}
+
+.delete-btn{
+    border:none;
+    background:#fee2e2;
+    color:#dc2626;
+    padding:7px 10px;
+    border-radius:6px;
+    font-size:9px;
+}
+
+
+/* =========================
+   FORM
+========================= */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.input-group label{
+    font-size:10px;
+    color:#64748b;
+}
+
+.input-group input,
+.input-group select{
+    padding:10px;
+    border:1px solid #dce2ea;
+    border-radius:7px;
+    outline:none;
+}
+
+.add-btn{
+    margin-top:18px;
+    background:#16a34a;
+    border:none;
+    color:white;
+    padding:11px 18px;
+    border-radius:7px;
+}
+
+
+/* =========================
+   ORDER CARDS
+========================= */
+
+.order-card{
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.order-card strong{
+    font-size:12px;
+}
+
+.order-card p{
+    color:#8a93a3;
+    font-size:10px;
+    margin-top:5px;
+}
+
+.priority{
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:9px;
+}
+
+.critical{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.high{
+    background:#ffedd5;
+    color:#ea580c;
+}
+
+.medium{
+    background:#fef3c7;
+    color:#ca8a04;
+}
+
+.low{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+
+/* =========================
+   SMART DECISION
+========================= */
+
+.decision-box{
+    background:#f8fbff;
+    border:1px solid #bfdbfe;
+    border-radius:10px;
+    padding:18px;
+}
+
+.decision-data{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    margin:15px 0;
+    background:white;
+    border-radius:8px;
+    padding:14px;
+}
+
+.decision-data div{
+    text-align:center;
+    border-right:1px solid #edf0f4;
+}
+
+.decision-data div:last-child{
+    border:none;
+}
+
+.decision-data span{
+    display:block;
+    font-size:9px;
+    color:#9ca3af;
+    margin-bottom:5px;
+}
+
+.decision-data strong{
+    font-size:18px;
+}
+
+.recommendation{
+    padding:13px;
+    background:#eff6ff;
+    border-radius:8px;
+    margin-bottom:12px;
+}
+
+.recommendation strong{
+    font-size:10px;
+    color:#1d4ed8;
+}
+
+.recommendation p{
+    font-size:10px;
+    color:#526071;
+    line-height:1.5;
+    margin-top:5px;
+}
+
+
+/* =========================
+   ALERT
+========================= */
+
+.alert{
+    padding:13px;
+    border-radius:8px;
+    margin-bottom:10px;
+    font-size:11px;
+}
+
+.alert-red{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.alert-orange{
+    background:#ffedd5;
+    color:#9a3412;
+}
+
+.alert-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+
+/* =========================
+   PROGRESS
+========================= */
+
+.progress{
+    margin-bottom:18px;
+}
+
+.progress-top{
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    margin-bottom:6px;
+}
+
+.progress-bar{
+    height:8px;
+    background:#e5e7eb;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    height:100%;
+    border-radius:20px;
+    background:#2563eb;
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+.toast{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    background:#111827;
+    color:white;
+    padding:14px 18px;
+    border-radius:9px;
+    display:none;
+    z-index:1000;
+    font-size:11px;
+}
+
+.toast.show{
+    display:block;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1100px){
+
+    .stats{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .form-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:800px){
+
+    .sidebar{
+        width:70px;
+    }
+
+    .logo h2,
+    .logo small,
+    .menu button{
+        font-size:0;
+    }
+
+    .admin div:last-child{
+        display:none;
+    }
+
+    .main{
+        margin-left:70px;
+        padding:15px;
+    }
+
+    .header-right{
+        display:none;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+}
+
+@media(max-width:550px){
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .ai-banner{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            S
+        </div>
+
+        <div>
+            <h2>SmartStock</h2>
+            <small>AI Warehouse</small>
+        </div>
+
+    </div>
+
+
+    <div class="menu">
+
+        <div class="menu-title">
+            MAIN MENU
+        </div>
+
+        <button class="active" onclick="showPage('dashboard',this)">
+            📊 Dashboard
+        </button>
+
+        <button onclick="showPage('inventory',this)">
+            📦 Inventory
+        </button>
+
+        <button onclick="showPage('orders',this)">
+            🛒 Orders
+        </button>
+
+        <button onclick="showPage('allocation',this)">
+            🧠 Smart Allocation
+        </button>
+
+        <button onclick="showPage('operations',this)">
+            👷 Operations
+        </button>
+
+        <button onclick="showPage('exceptions',this)">
+            ⚠️ Exceptions
+        </button>
+
+        <button onclick="showPage('analytics',this)">
+            📈 Analytics
+        </button>
+
+    </div>
+
+
+    <div class="admin">
+
+        <div class="avatar">
+            AD
+        </div>
+
+        <div>
+            <strong>Admin</strong><br>
+            <small>Warehouse Manager</small>
+        </div>
+
+    </div>
+
+</aside>
+
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="main">
+
+
+<header class="header">
+
+    <div>
+
+        <h1 id="pageTitle">
+            Warehouse Dashboard
+        </h1>
+
+        <p>
+            Smart warehouse operations & order fulfillment
+        </p>
+
+    </div>
+
+
+    <div class="header-right">
+
+        <input
+            class="search"
+            id="globalSearch"
+            onkeyup="searchProducts()"
+            placeholder="🔍 Search..."
+        >
+
+        <button class="notification">
+            🔔
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section id="dashboard" class="page active">
+
+
+<div class="ai-banner">
+
+    <div class="ai-left">
+
+        <div class="ai-icon">
+            ✦
+        </div>
+
+        <div>
+
+            <small>SMARTSTOCK AI</small>
+
+            <h2>
+                Warehouse is
+                <span class="green">82% healthy</span>
+            </h2>
+
+            <p>
+                AI detected important warehouse actions.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <button
+        class="ai-btn"
+        onclick="showToast('AI analysis completed successfully')"
+    >
+        Run AI Analysis →
+    </button>
+
+</div>
+
+
+
+<div class="stats">
+
+
+<div class="stat">
+
+    <div class="stat-title">
+        Total Products
+    </div>
+
+    <h2 id="totalProducts">
+        4
+    </h2>
+
+    <p class="blue">
+        Active inventory
+    </p>
+
+</div>
+
+
+<div class="stat">
+
+    <div class="stat-title">
+        Total Stock
+    </div>
+
+    <h2 id="totalStock">
+        49
+    </h2>
+
+    <p class="green">
+        Units available
+    </p>
+
+</div>
+
+
+<div class="stat">
+
+    <div class="stat-title">
+        Total Orders
+    </div>
+
+    <h2 id="totalOrders">
+        4
+    </h2>
+
+    <p class="blue">
+        Customer orders
+    </p>
+
+</div>
+
+
+<div class="stat">
+
+    <div class="stat-title">
+        Low Stock
+    </div>
+
+    <h2 id="lowStockCount">
+        1
+    </h2>
+
+    <p class="orange">
+        Need attention
+    </p>
+
+</div>
+
+
+<div class="stat">
+
+    <div class="stat-title">
+        Out of Stock
+    </div>
+
+    <h2 id="outStockCount">
+        1
+    </h2>
+
+    <p class="red">
+        Urgent
+    </p>
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+    <h2>🤖 Today's Smart Recommendations</h2>
+    <p>System-generated operational decisions</p>
+</div>
+
+</div>
+
+
+<div id="dashboardRecommendations">
+
+<div class="alert alert-red">
+    🚨 Keyboard is out of stock. Reorder recommended.
+</div>
+
+<div class="alert alert-orange">
+    ⚠️ Wireless Mouse stock is below minimum level.
+</div>
+
+<div class="alert alert-green">
+    ✓ Warehouse operations are running normally.
+</div>
+
+</div>
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     INVENTORY
+===================================================== -->
+
+<section id="inventory" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>📦 Add New Product</h2>
+
+<p>
+Enter product details and add them to inventory.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="form-grid">
+
+
+<div class="input-group">
+
+<label>Product Name</label>
+
+<input
+id="productName"
+placeholder="Example: Laptop"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>SKU</label>
+
+<input
+id="productSKU"
+placeholder="Example: LAP-001"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Quantity</label>
+
+<input
+id="productQty"
+type="number"
+placeholder="Example: 20"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Minimum Stock</label>
+
+<input
+id="productMin"
+type="number"
+placeholder="Example: 5"
+>
+
+</div>
+
+
+</div>
+
+
+<button
+class="add-btn"
+onclick="addProduct()"
+>
++ Add Product
+</button>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>📦 Inventory List</h2>
+
+<p>
+Live warehouse stock
+</p>
+
+</div>
+
+</div>
+
+
+<div class="table-box">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Product</th>
+<th>SKU</th>
+<th>Quantity</th>
+<th>Minimum</th>
+<th>Status</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="inventoryTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     ORDERS
+===================================================== -->
+
+<section id="orders" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>🛒 Create New Order</h2>
+
+<p>
+Create customer order and automatically check stock.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="form-grid">
+
+
+<div class="input-group">
+
+<label>Customer Name</label>
+
+<input
+id="customerName"
+placeholder="Example: Vijaya"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Product</label>
+
+<select id="orderProduct">
+</select>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Quantity</label>
+
+<input
+id="orderQty"
+type="number"
+placeholder="Example: 5"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Priority</label>
+
+<select id="orderPriority">
+
+<option value="Critical">
+Critical
+</option>
+
+<option value="High">
+High
+</option>
+
+<option value="Medium">
+Medium
+</option>
+
+<option value="Low">
+Low
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+<button
+class="add-btn"
+onclick="createOrder()"
+>
++ Create Order
+</button>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>🛒 Customer Orders</h2>
+
+<p>
+Order fulfillment status
+</p>
+
+</div>
+
+</div>
+
+
+<div id="ordersList">
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     SMART ALLOCATION
+===================================================== -->
+
+<section id="allocation" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>🧠 Smart Inventory Allocation</h2>
+
+<p>
+System decides how available stock should be allocated.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="decision-box">
+
+
+<h3>
+🔍 Check Order Allocation
+</h3>
+
+
+<div class="form-grid" style="margin-top:15px;">
+
+
+<div class="input-group">
+
+<label>Select Product</label>
+
+<select id="allocationProduct">
+</select>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Required Quantity</label>
+
+<input
+id="allocationQty"
+type="number"
+placeholder="10"
+>
+
+</div>
+
+
+<div class="input-group">
+
+<label>Order Priority</label>
+
+<select id="allocationPriority">
+
+<option>Critical</option>
+<option>High</option>
+<option>Medium</option>
+<option>Low</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+<button
+class="add-btn"
+onclick="checkAllocation()"
+>
+🧠 Analyze Allocation
+</button>
+
+
+<div
+id="allocationResult"
+style="margin-top:20px;"
+>
+</div>
+
+
+</div>
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     OPERATIONS
+===================================================== -->
+
+<section id="operations" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>👷 Picking & Packing</h2>
+
+<p>
+Today's warehouse workflow
+</p>
+
+</div>
+
+</div>
+
+
+<div class="progress">
+
+<div class="progress-top">
+
+<span>
+Picking
+</span>
+
+<strong>
+78%
+</strong>
+
+</div>
+
+<div class="progress-bar">
+
+<div
+class="progress-fill"
+style="width:78%"
+></div>
+
+</div>
+
+</div>
+
+
+<div class="progress">
+
+<div class="progress-top">
+
+<span>
+Packing
+</span>
+
+<strong>
+55%
+</strong>
+
+</div>
+
+<div class="progress-bar">
+
+<div
+class="progress-fill"
+style="width:55%;background:#8b5cf6"
+></div>
+
+</div>
+
+</div>
+
+
+<div class="progress">
+
+<div class="progress-top">
+
+<span>
+Quality Check
+</span>
+
+<strong>
+88%
+</strong>
+
+</div>
+
+<div class="progress-bar">
+
+<div
+class="progress-fill"
+style="width:88%;background:#22c55e"
+></div>
+
+</div>
+
+</div>
+
+
+<div class="progress">
+
+<div class="progress-top">
+
+<span>
+Dispatch
+</span>
+
+<strong>
+70%
+</strong>
+
+</div>
+
+<div class="progress-bar">
+
+<div
+class="progress-fill"
+style="width:70%;background:#f59e0b"
+></div>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     EXCEPTIONS
+===================================================== -->
+
+<section id="exceptions" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>⚠️ Warehouse Exceptions</h2>
+
+<p>
+Problems that require attention
+</p>
+
+</div>
+
+</div>
+
+
+<div id="exceptionList">
+
+<div class="alert alert-red">
+🚨 Keyboard is out of stock.
+</div>
+
+<div class="alert alert-orange">
+⚠️ Wireless Mouse is below minimum stock.
+</div>
+
+<div class="alert alert-orange">
+⚠️ 3 damaged items reported.
+</div>
+
+<div class="alert alert-red">
+🚨 2 orders are delayed.
+</div>
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     ANALYTICS
+===================================================== -->
+
+<section id="analytics" class="page">
+
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+
+<h2>📈 Warehouse Analytics</h2>
+
+<p>
+Operational performance
+</p>
+
+</div>
+
+</div>
+
+
+<div class="stats">
+
+
+<div class="stat">
+
+<div class="stat-title">
+Order Fulfillment
+</div>
+
+<h2 class="green">
+92%
+</h2>
+
+<p>
+Excellent
+</p>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-title">
+Inventory Accuracy
+</div>
+
+<h2 class="blue">
+97%
+</h2>
+
+<p>
+Very Good
+</p>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-title">
+Picking Efficiency
+</div>
+
+<h2 class="green">
+88%
+</h2>
+
+<p>
+Good
+</p>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-title">
+Delayed Orders
+</div>
+
+<h2 class="red">
+6
+</h2>
+
+<p>
+Needs attention
+</p>
+
+</div>
+
+
+</div>
+
+
+<div class="alert alert-green">
+
+✓ Warehouse performance is currently healthy.
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+</main>
+
+
+
+<!-- TOAST -->
+
+<div
+id="toast"
+class="toast"
+>
+Success
+</div>
+
+
+
+<script>
+
+
+/* =====================================================
+   DATA
+===================================================== */
+
+
+let products = [
+
+{
+    name:"Laptop",
+    sku:"LAP-001",
+    qty:24,
+    min:5
+},
+
+{
+    name:"Wireless Mouse",
+    sku:"MOU-021",
+    qty:7,
+    min:10
+},
+
+{
+    name:"Keyboard",
+    sku:"KEY-015",
+    qty:0,
+    min:5
+},
+
+{
+    name:"USB-C Hub",
+    sku:"USB-009",
+    qty:18,
+    min:5
+}
+
+];
+
+
+let orders = [
+
+{
+    id:"ORD-1001",
+    customer:"Rahul",
+    product:"Laptop",
+    qty:2,
+    priority:"Critical",
+    status:"Pending"
+},
+
+{
+    id:"ORD-1002",
+    customer:"Anjali",
+    product:"Wireless Mouse",
+    qty:5,
+    priority:"High",
+    status:"Picking"
+},
+
+{
+    id:"ORD-1003",
+    customer:"Kiran",
+    product:"USB-C Hub",
+    qty:3,
+    priority:"Medium",
+    status:"Packing"
+}
+
+];
+
+
+
+/* =====================================================
+   PAGE NAVIGATION
+===================================================== */
+
+
+function showPage(pageId,button){
+
+    document.querySelectorAll(".page").forEach(page=>{
+        page.classList.remove("active");
+    });
+
+    document.getElementById(pageId).classList.add("active");
+
+
+    document.querySelectorAll(".menu button").forEach(btn=>{
+        btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+
+    let titles={
+
+        dashboard:"Warehouse Dashboard",
+        inventory:"Inventory Management",
+        orders:"Order Management",
+        allocation:"Smart Inventory Allocation",
+        operations:"Warehouse Operations",
+        exceptions:"Warehouse Exceptions",
+        analytics:"Warehouse Analytics"
+
+    };
+
+    document.getElementById("pageTitle").innerText=titles[pageId];
+
+}
+
+
+
+/* =====================================================
+   INVENTORY DISPLAY
+===================================================== */
+
+
+function displayProducts(){
+
+    let table=document.getElementById("inventoryTable");
+
+    table.innerHTML="";
+
+
+    products.forEach((product,index)=>{
+
+        let status="";
+        let statusClass="";
+
+
+        if(product.qty===0){
+
+            status="Out of Stock";
+            statusClass="out-stock";
+
+        }
+
+        else if(product.qty<=product.min){
+
+            status="Low Stock";
+            statusClass="low-stock";
+
+        }
+
+        else{
+
+            status="Available";
+            statusClass="available";
+
+        }
+
+
+        table.innerHTML+=`
+
+        <tr>
+
+            <td>
+                <strong>${product.name}</strong>
+            </td>
+
+            <td>
+                ${product.sku}
+            </td>
+
+            <td>
+                <strong>${product.qty}</strong>
+            </td>
+
+            <td>
+                ${product.min}
+            </td>
+
+            <td>
+                <span class="status ${statusClass}">
+                    ${status}
+                </span>
+            </td>
+
+            <td>
+
+                <button
+                class="delete-btn"
+                onclick="deleteProduct(${index})"
+                >
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+
+    updateStats();
+
+    updateProductSelects();
+
+}
+
+
+
+/* =====================================================
+   ADD PRODUCT
+===================================================== */
+
+
+function addProduct(){
+
+    let name=document.getElementById("productName").value.trim();
+
+    let sku=document.getElementById("productSKU").value.trim();
+
+    let qty=parseInt(
+        document.getElementById("productQty").value
+    );
+
+    let min=parseInt(
+        document.getElementById("productMin").value
+    );
+
+
+    if(!name || !sku || isNaN(qty) || isNaN(min)){
+
+        showToast("Please fill all product details");
+
+        return;
+
+    }
+
+
+    products.push({
+
+        name:name,
+        sku:sku,
+        qty:qty,
+        min:min
+
+    });
+
+
+    document.getElementById("productName").value="";
+    document.getElementById("productSKU").value="";
+    document.getElementById("productQty").value="";
+    document.getElementById("productMin").value="";
+
+
+    displayProducts();
+
+    showToast("Product added successfully!");
+
+}
+
+
+
+/* =====================================================
+   DELETE PRODUCT
+===================================================== */
+
+
+function deleteProduct(index){
+
+    products.splice(index,1);
+
+    displayProducts();
+
+    showToast("Product removed");
+
+}
+
+
+
+/* =====================================================
+   UPDATE DASHBOARD
+===================================================== */
+
+
+function updateStats(){
+
+    let totalStock=products.reduce(
+        (sum,p)=>sum+p.qty,
+        0
+    );
+
+
+    let lowStock=products.filter(
+        p=>p.qty>0 && p.qty<=p.min
+    ).length;
+
+
+    let outStock=products.filter(
+        p=>p.qty===0
+    ).length;
+
+
+    document.getElementById("totalProducts").innerText=
+        products.length;
+
+
+    document.getElementById("totalStock").innerText=
+        totalStock;
+
+
+    document.getElementById("totalOrders").innerText=
+        orders.length;
+
+
+    document.getElementById("lowStockCount").innerText=
+        lowStock;
+
+
+    document.getElementById("outStockCount").innerText=
+        outStock;
+
+}
+
+
+
+/* =====================================================
+   PRODUCT SELECT
+===================================================== */
+
+
+function updateProductSelects(){
+
+    let orderSelect=
+        document.getElementById("orderProduct");
+
+    let allocationSelect=
+        document.getElementById("allocationProduct");
+
+
+    orderSelect.innerHTML="";
+    allocationSelect.innerHTML="";
+
+
+    products.forEach(product=>{
+
+        orderSelect.innerHTML+=`
+
+            <option value="${product.name}">
+                ${product.name}
+            </option>
+
+        `;
+
+
+        allocationSelect.innerHTML+=`
+
+            <option value="${product.name}">
+                ${product.name}
+            </option>
+
+        `;
+
+    });
+
+}
+
+
+
+/* =====================================================
+   CREATE ORDER
+===================================================== */
+
+
+function createOrder(){
+
+    let customer=
+        document.getElementById("customerName").value.trim();
+
+
+    let product=
+        document.getElementById("orderProduct").value;
+
+
+    let qty=parseInt(
+        document.getElementById("orderQty").value
+    );
+
+
+    let priority=
+        document.getElementById("orderPriority").value;
+
+
+    if(!customer || !product || isNaN(qty) || qty<=0){
+
+        showToast("Please enter valid order details");
+
+        return;
+
+    }
+
+
+    let orderNumber=
+        1000+orders.length+1;
+
+
+    orders.push({
+
+        id:"ORD-"+orderNumber,
+
+        customer:customer,
+
+        product:product,
+
+        qty:qty,
+
+        priority:priority,
+
+        status:"Pending"
+
+    });
+
+
+    document.getElementById("customerName").value="";
+
+    document.getElementById("orderQty").value="";
+
+
+    displayOrders();
+
+    updateStats();
+
+
+    showToast("Order created successfully!");
+
+}
+
+
+
+/* =====================================================
+   DISPLAY ORDERS
+===================================================== */
+
+
+function displayOrders(){
+
+    let list=document.getElementById("ordersList");
+
+    list.innerHTML="";
+
+
+    orders.forEach((order,index)=>{
+
+        let priorityClass=
+            order.priority.toLowerCase();
+
+
+        list.innerHTML+=`
+
+        <div class="order-card">
+
+            <div>
+
+                <strong>
+                    ${order.id}
+ PIPP               </strong>
+
+                <p>
+                    Customer: ${order.customer}
+                </p>
+
+                <p>
+                    ${order.product} × ${order.qty}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <span
+                class="priority ${priorityClass}"
+                >
+                    ${order.priority}
+                </span>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    ${order.status}
+                </strong>
+
+                <br><br>
+
+                <button
+                class="action-btn"
+                onclick="changeOrderStatus(${index})"
+                >
+                    Update Status
+                </button>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+
+/* =====================================================
+   CHANGE ORDER STATUS
+===================================================== */
+
+
+function changeOrderStatus(index){
+
+    let statuses=[
+        "Pending",
+        "Picking",
+        "Packing",
+        "Quality Check",
+        "Dispatched",
+        "Delivered"
+    ];
+
+
+    let current=
+        statuses.indexOf(
+            orders[index].status
+        );
+
+
+    let next=
+        (current+1)%statuses.length;
+
+
+    orders[index].status=
+        statuses[next];
+
+
+    displayOrders();
+
+    showToast(
+        "Order status updated to "+
+        statuses[next]
+    );
+
+}
+
+
+
+/* =====================================================
+   SMART ALLOCATION
+===================================================== */
+
+
+function checkAllocation(){
+
+    let productName=
+        document.getElementById("allocationProduct").value;
+
+
+    let required=parseInt(
+        document.getElementById("allocationQty").value
+    );
+
+
+    let priority=
+        document.getElementById("allocationPriority").value;
+
+
+    if(isNaN(required) || required<=0){
+
+        showToast("Enter required quantity");
+
+        return;
+
+    }
+
+
+    let product=
+        products.find(
+            p=>p.name===productName
+        );
+
+
+    if(!product){
+
+        return;
+
+    }
+
+
+    let available=product.qty;
+
+    let shortage=
+        Math.max(required-available,0);
+
+
+    let allocated=
+        Math.min(required,available);
+
+
+    let decision="";
+
+
+    if(priority==="Critical"){
+
+        decision=
+        `
+        <strong>
+        🔴 Critical Order Decision
+        </strong>
+
+        <p>
+        Allocate ${allocated} units immediately.
+        ${shortage>0
+        ? `Shortage of ${shortage} units detected.`
+        : "Full quantity is available."
+        }
+
+        Create replenishment request if required.
+        </p>
+        `;
+
+    }
+
+    else if(priority==="High"){
+
+        decision=
+        `
+        <strong>
+        🟠 High Priority Decision
+        </strong>
+
+        <p>
+        Allocate available stock first.
+        Monitor remaining shortage and prioritize
+        incoming inventory.
+        </p>
+        `;
+
+    }
+
+    else{
+
+        decision=
+        `
+        <strong>
+        🟢 Standard Priority Decision
+        </strong>
+
+        <p>
+        Hold allocation if stock is insufficient.
+        Critical and high-priority orders should be
+        fulfilled first.
+        </p>
+        `;
+
+    }
+
+
+    document.getElementById(
+        "allocationResult"
+    ).innerHTML=`
+
+    <div class="decision-data">
+
+        <div>
+
+            <span>
+                Required
+            </span>
+
+            <strong>
+                ${required}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Available
+            </span>
+
+            <strong class="green">
+                ${available}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Shortage
+            </span>
+
+            <strong class="red">
+                ${shortage}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="recommendation">
+
+        ${decision}
+
+    </div>
+
+    `;
+
+}
+
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+
+function searchProducts(){
+
+    let search=
+        document.getElementById(
+            "globalSearch"
+        ).value.toLowerCase();
+
+
+    let rows=
+        document.querySelectorAll(
+            "#inventoryTable tr"
+        );
+
+
+    rows.forEach(row=>{
+
+        let text=
+            row.innerText.toLowerCase();
+
+
+        row.style.display=
+            text.includes(search)
+            ? ""
+            : "none";
+
+    });
+
+}
+
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+
+function showToast(message){
+
+    let toast=
+        document.getElementById("toast");
+
+
+    toast.innerText=message;
+
+    toast.classList.add("show");
+
+
+    setTimeout(()=>{
+
+        toast.classList.remove("show");
+
+    },2500);
+
+}
+
+
+
+/* =====================================================
+   INITIAL LOAD
+===================================================== */
+
+
+displayProducts();
+
+displayOrders();
+
+updateProductSelects();
+
+updateStats();
+
+
+</script>
+
+</body>
+</html>
